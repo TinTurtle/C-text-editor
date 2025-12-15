@@ -2,6 +2,7 @@
 
 
 #include <errno.h>
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -19,7 +20,10 @@
 
 /*** data ***/
 
-struct termios orig_termios;
+struct editorConfig{
+	struct termios orig_termios;
+};
+struct editorConfig E;
 
 /*** terminal ***/
 
@@ -33,16 +37,16 @@ void die(const char *s){
 
 void disableRawMode(){
 	//tcsetattr is used to set the orig attrbutes to the terminal again at the end of the program
-	if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios)== -1)die("tcsetattr");
+	if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios)== -1)die("tcsetattr");
 }
 
 void enableRawMode(){
 	//tcgetattr used to load the orig attributes of the terminal
-	if(tcgetattr(STDIN_FILENO, &orig_termios)== -1)die("tcgetattr");
+	if(tcgetattr(STDIN_FILENO, &E.orig_termios)== -1)die("tcgetattr");
 	//atexit is used to call the disableRawMode func at-exit
 	atexit(disableRawMode);
 
-	struct termios raw = orig_termios;
+	struct termios raw = E.orig_termios;
 	// disabling thee flags that might hinder our keypresses
 	raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);
 	raw.c_iflag &= ~(IXON | ICRNL | ISTRIP | BRKINT | INPCK);
@@ -60,6 +64,19 @@ char editorReadKey(){
 	while((nread = read(STDIN_FILENO, &c, 1)) != 1){
 		if(nread == -1 && errno != EAGAIN) die("read");
 	} return c;
+}
+
+int getWindowSize(int *rows, int *cols){
+	struct winsize ws;
+
+	if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws)== -1 || ws.ws_col == 0){
+		return -1;
+	}else{
+		*rows = ws.ws_row;
+		*cols = ws.ws_col;
+	
+		return 0;
+	}
 }
 
 /*** output ***/
