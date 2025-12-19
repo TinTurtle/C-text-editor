@@ -24,6 +24,7 @@
 
 #define KILO_VERSION "0.0.1"
 
+//special keys remapped to a different value for assigning purpose in the editor
 enum editorKey{
 	ARROW_LEFT = 1000,
 	ARROW_RIGHT,
@@ -39,6 +40,7 @@ enum editorKey{
 
 /*** data ***/
 
+//for printing the text from the file
 typedef struct erow{
 	int size;
 	char *chars;
@@ -47,11 +49,11 @@ typedef struct erow{
 struct editorConfig{
 	int cx;
 	int cy;
-	int screenrows;
-	int screencols;
-	struct termios orig_termios;
-	int numrows;
-	erow row;
+	int screenrows;//no of rows available on the screen-depends on the screen size
+	int screencols;// no of cols available on the screen
+	struct termios orig_termios;//to store and edit the terminal attributes
+	int numrows;//no of rows in the text of the opened file
+	erow row;// struct for storing and displaying the text in the file
 };
 struct editorConfig E;
 
@@ -235,7 +237,7 @@ void editorDrawRows(struct abuf *ab){
 	int y;
 	for(y=0;y<E.screenrows;y++){
 		if(y >= E.numrows){
-			if(y == E.screenrows / 3){
+			if(E.numrows == 0 && y == E.screenrows / 3){
 				char welcome[80];
 				int welcomelen = snprintf(welcome, sizeof(welcome), "Kilo editor -- version %s", KILO_VERSION);
 				if(welcomelen > E.screencols) welcomelen = E.screencols;
