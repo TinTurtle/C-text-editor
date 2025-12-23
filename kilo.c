@@ -43,6 +43,8 @@ enum editorKey{
 //for printing the text from the file
 typedef struct erow{
 	int size;
+	int rsize;
+	char *render;
 	char *chars;
 }erow;
 
@@ -193,9 +195,27 @@ void editorAppendRow(char *s, size_t len){
 	E.row[at].chars = malloc(len + 1);
 	memcpy(E.row[at].chars, s, len);
 	E.row[at].chars[len] = '\0';
+
+	E.row[at].size = 0;
+	E.row[at].render = NULL;
 	E.numrows++;
+	editorUpdateRow(&E.row[at]);
 }
 
+
+void editorUpdateRow(erow *row){
+	free(row->render);
+
+	row->render = malloc(row->size+1);
+
+	int j;
+	int idx = 0;
+	for(j=0;j<row->size;j++){
+		row->render[idx++] = row->chars[j];
+	}
+	row->render[idx] = '\0';
+	row->size = idx;
+}
 
 /*** file i/o ***/
 
