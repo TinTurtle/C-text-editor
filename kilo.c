@@ -30,6 +30,7 @@
 
 //special keys remapped to a different value for assigning purpose in the editor
 enum editorKey{
+	BACKSPACE = 127,
 	ARROW_LEFT = 1000,
 	ARROW_RIGHT,
 	ARROW_UP,
@@ -470,6 +471,9 @@ void editorProcessKeypress(){
 	int c = editorReadKey();
 
 	switch (c) {
+		case '\r':
+			//to-do
+			break;
 		case CTRL_KEY('q'):
 			write(STDOUT_FILENO, "\x1b[2J", 4);
 			write(STDOUT_FILENO, "\x1b[H", 3);
@@ -499,11 +503,19 @@ void editorProcessKeypress(){
 		case END_KEY:
 			E.cx = E.screencols - 1;
 			break;
+		case BACKSPACE:
+		case CTRL_KEY('h'):
+		case DEL_KEY:
+			//to-do
+			break;
 		case ARROW_UP:
 		case ARROW_LEFT:
 		case ARROW_DOWN:
 		case ARROW_RIGHT:
 			editorMoveCursor(c);
+			break;
+		case CTRL_KEY('l'):
+		case '\x1b':
 			break;
 		default:
 			editorInsertChar(c);
